@@ -41,13 +41,34 @@ fun main() {
         )
 
         when (scanner.nextLine().trim()) {
-            "1" -> menuPlanLekcji()
-            "2" -> menuZadania()
-            "3" -> menuOceny()
-            "4" -> menuWydarzenia()
-            "5" -> przypomnienia()
-            "6" -> statystyki()
-            "7" -> zapiszDaneDoPliku()
+            "1" -> {
+                menuPlanLekcji()
+                clearConsole()
+            }
+            "2" -> {
+                menuZadania()
+                clearConsole()
+            }
+            "3" -> {
+                menuOceny()
+                clearConsole()
+            }
+            "4" -> {
+                menuWydarzenia()
+                clearConsole()
+            }
+            "5" -> {
+                przypomnienia()
+                clearConsole()
+            }
+            "6" -> {
+                statystyki()
+                clearConsole()
+            }
+            "7" -> {
+                zapiszDaneDoPliku()
+                clearConsole()
+            }
             "8" -> {
                 println("Do zobaczenia, ${if (imie.isNotBlank()) imie else "Użytkowniku"}!")
                 zapiszDaneDoPliku()
@@ -227,7 +248,7 @@ fun wczytajDaneZPliku() {
                 val dane = line.split(";")
                 if (dane.size >= 2) try {
                     wydarzenia.add(Wydarzenie(LocalDate.parse(dane[0]), unescape(dane.subList(1, dane.size).joinToString(";"))))
-                } catch (_: Exception) {}
+                } catch (e: Exception) {}
             }
             "[PLAN]" -> {
                 val dane = line.split(";")
@@ -240,11 +261,15 @@ fun wczytajDaneZPliku() {
 
 fun escape(s: String): String = s.replace("\\", "\\\\").replace(";", "\\;")
 fun unescape(s: String): String = s.replace("\\;", ";").replace("\\\\", "\\")
-fun String?.toBooleanStrictOrNull(): Boolean? {
-    if (this == null) return null
-    return when (this.lowercase()) {
-        "true", "tak", "1", "t" -> true
-        "false", "nie", "0", "f" -> false
-        else -> null
+
+fun clearConsole() {
+    if (System.getProperty("os.name").contains("win", ignoreCase = true)) {
+        try {
+            Thread.sleep(2000)
+            Runtime.getRuntime().exec("cmd /c cls")
+        } catch (e: Exception) {
+            println("Nie udało się wyczyścić konsoli.")
+        }
     }
 }
+
