@@ -1,5 +1,6 @@
 import java.io.File
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 import java.util.*
 
 data class Zadanie(val opis: String, var wykonane: Boolean = false)
@@ -8,24 +9,24 @@ data class Wydarzenie(val data: LocalDate, val opis: String)
 data class Lekcja(val dzien: String, val przedmiot: String, val godzina: String)
 
 val scanner = Scanner(System.`in`)
-
 val zadania = mutableListOf<Zadanie>()
 val oceny = mutableListOf<Ocena>()
 val wydarzenia = mutableListOf<Wydarzenie>()
 val plan = mutableListOf<Lekcja>()
+var nazwaPliku = "asystent_dane.txt"
 
 fun main() {
-    println("🎓 Witaj w Szkolnym Asystencie!")
-    println("Podaj swoje imię:")
-    val imie = scanner.nextLine()
-    println("Cześć, $imie! Zaczynajmy ")
+    println("Witaj w Szkolnym Asystencie!")
+    print("Podaj swoje imię: ")
+    val imie = scanner.nextLine().trim()
+    nazwaPliku = if (imie.isNotBlank()) "asystent_${imie}.txt" else "asystent_dane.txt"
+    println("Cześć, ${if (imie.isNotBlank()) imie else "Użytkowniku"}! Zaczynajmy.")
 
     wczytajDaneZPliku()
 
     while (true) {
         println(
             """
-            
             ====== MENU GŁÓWNE ======
             1. Plan lekcji
             2. Lista zadań domowych
@@ -39,7 +40,7 @@ fun main() {
         """.trimIndent()
         )
 
-        when (scanner.nextLine()) {
+        when (scanner.nextLine().trim()) {
             "1" -> menuPlanLekcji()
             "2" -> menuZadania()
             "3" -> menuOceny()
@@ -48,161 +49,202 @@ fun main() {
             "6" -> statystyki()
             "7" -> zapiszDaneDoPliku()
             "8" -> {
-                println("Do zobaczenia, $imie! ")
+                println("Do zobaczenia, ${if (imie.isNotBlank()) imie else "Użytkowniku"}!")
                 zapiszDaneDoPliku()
                 return
             }
-
             else -> println("Nieprawidłowa opcja!")
         }
     }
 }
 
-// Plan Lekcji
 fun menuPlanLekcji() {
     println("PLAN LEKCJI:")
     println("1. Dodaj lekcję")
     println("2. Usuń lekcję")
     println("3. Pokaż plan")
-    when (scanner.nextLine()) {
+    when (scanner.nextLine().trim()) {
         "1" -> {
-            print("Dzień: "); val dzien = scanner.nextLine()
-            print("Przedmiot: "); val przedmiot = scanner.nextLine()
-            print("Godzina: "); val godzina = scanner.nextLine()
-            plan.add(Lekcja(dzien, przedmiot, godzina))
+            print("Dzień: "); val dzien = scanner.nextLine().trim()
+            print("Przedmiot: "); val przedmiot = scanner.nextLine().trim()
+            print("Godzina: "); val godzina = scanner.nextLine().trim()
+            if (dzien.isNotBlank() && przedmiot.isNotBlank() && godzina.isNotBlank()) {
+                plan.add(Lekcja(dzien, przedmiot, godzina))
+                println("Dodano lekcję.")
+            } else println("Nieprawidłowe dane.")
         }
-
         "2" -> {
+            if (plan.isEmpty()) {
+                println("Plan jest pusty.")
+                return
+            }
             plan.forEachIndexed { i, lekcja -> println("${i + 1}. ${lekcja.dzien} - ${lekcja.przedmiot} (${lekcja.godzina})") }
-            print("Którą lekcję usunąć? "); val index = scanner.nextLine().toIntOrNull()?.minus(1)
-            if (index != null && index in plan.indices) plan.removeAt(index)
+            print("Którą lekcję usunąć? ")
+            val index = scanner.nextLine().toIntOrNull()?.minus(1)
+            if (index != null && index in plan.indices) {
+                plan.removeAt(index)
+                println("Usunięto lekcję.")
+            } else println("Nieprawidłowy numer.")
         }
-
-        "3" -> plan.forEach { println("${it.dzien}: ${it.przedmiot} o ${it.godzina}") }
+        "3" -> if (plan.isEmpty()) println("Plan jest pusty.") else plan.forEach { println("${it.dzien}: ${it.przedmiot} o ${it.godzina}") }
+        else -> println("Nieprawidłowa opcja.")
     }
 }
-
 
 fun menuZadania() {
     println("ZADANIA DOMOWE:")
     println("1. Dodaj zadanie")
     println("2. Oznacz jako wykonane")
     println("3. Pokaż wszystkie")
-    when (scanner.nextLine()) {
+    when (scanner.nextLine().trim()) {
         "1" -> {
-            print("Opis zadania: "); val opis = scanner.nextLine()
-            zadania.add(Zadanie(opis))
+            print("Opis zadania: ")
+            val opis = scanner.nextLine().trim()
+            if (opis.isNotBlank()) {
+                zadania.add(Zadanie(opis))
+                println("Dodano zadanie.")
+            } else println("Opis nie może być pusty.")
         }
-
         "2" -> {
+            if (zadania.isEmpty()) {
+                println("Brak zadań.")
+                return
+            }
             zadania.forEachIndexed { i, z -> println("${i + 1}. ${z.opis} (${if (z.wykonane) "✅" else "❌"})") }
-            print("Które zadanie wykonałeś? "); val index = scanner.nextLine().toIntOrNull()?.minus(1)
-            if (index != null && index in zadania.indices) zadania[index].wykonane = true
+            print("Które zadanie wykonałeś? ")
+            val index = scanner.nextLine().toIntOrNull()?.minus(1)
+            if (index != null && index in zadania.indices) {
+                zadania[index].wykonane = true
+                println("Zadanie oznaczone jako wykonane.")
+            } else println("Nieprawidłowy numer.")
         }
-
-        "3" -> zadania.forEach { println("- ${it.opis} (${if (it.wykonane) "✅" else "❌"})") }
+        "3" -> if (zadania.isEmpty()) println("Brak zadań.") else zadania.forEach { println("- ${it.opis} (${if (it.wykonane) "✅" else "❌"})") }
+        else -> println("Nieprawidłowa opcja.")
     }
 }
 
-// Oceny
 fun menuOceny() {
     println("OCENY:")
     println("1. Dodaj ocenę")
     println("2. Pokaż wszystkie")
     println("3. Średnia ocen")
-    when (scanner.nextLine()) {
+    when (scanner.nextLine().trim()) {
         "1" -> {
-            print("Przedmiot: "); val przedmiot = scanner.nextLine()
-            print("Ocena (1-6): "); val ocena = scanner.nextLine().toDoubleOrNull() ?: 0.0
-            oceny.add(Ocena(przedmiot, ocena))
+            print("Przedmiot: "); val przedmiot = scanner.nextLine().trim()
+            print("Ocena (np. 4.5): "); val ocena = scanner.nextLine().replace(',', '.').toDoubleOrNull()
+            if (przedmiot.isNotBlank() && ocena != null) {
+                oceny.add(Ocena(przedmiot, ocena))
+                println("Dodano ocenę.")
+            } else println("Nieprawidłowe dane.")
         }
-
-        "2" -> oceny.forEach { println("${it.przedmiot}: ${it.ocena}") }
-        "3" -> {
-            if (oceny.isNotEmpty()) {
-                val srednia = oceny.map { it.ocena }.average()
-                println("Średnia ocen: %.2f".format(srednia))
-            } else println("Brak ocen!")
-        }
+        "2" -> if (oceny.isEmpty()) println("Brak ocen.") else oceny.forEach { println("${it.przedmiot}: ${it.ocena}") }
+        "3" -> if (oceny.isNotEmpty()) println("Średnia ocen: %.2f".format(oceny.map { it.ocena }.average())) else println("Brak ocen.")
+        else -> println("Nieprawidłowa opcja.")
     }
 }
 
-// Eventy
 fun menuWydarzenia() {
     println("KALENDARZ WYDARZEŃ:")
     println("1. Dodaj wydarzenie")
     println("2. Pokaż wydarzenia")
-    when (scanner.nextLine()) {
+    when (scanner.nextLine().trim()) {
         "1" -> {
-            print("Data (rrrr-mm-dd): "); val data = LocalDate.parse(scanner.nextLine())
-            print("Opis: "); val opis = scanner.nextLine()
-            wydarzenia.add(Wydarzenie(data, opis))
+            print("Data (rrrr-mm-dd): ")
+            val dataString = scanner.nextLine().trim()
+            try {
+                val data = LocalDate.parse(dataString)
+                print("Opis: ")
+                val opis = scanner.nextLine().trim()
+                if (opis.isNotBlank()) {
+                    wydarzenia.add(Wydarzenie(data, opis))
+                    println("Dodano wydarzenie.")
+                } else println("Opis nie może być pusty.")
+            } catch (e: DateTimeParseException) {
+                println("Nieprawidłowy format daty.")
+            }
         }
-
-        "2" -> wydarzenia.sortedBy { it.data }.forEach { println("${it.data}: ${it.opis}") }
+        "2" -> if (wydarzenia.isEmpty()) println("Brak wydarzeń.") else wydarzenia.sortedBy { it.data }.forEach { println("${it.data}: ${it.opis}") }
+        else -> println("Nieprawidłowa opcja.")
     }
 }
 
-// Remindery
 fun przypomnienia() {
     val dzis = LocalDate.now()
     val nadchodzace = wydarzenia.filter { it.data.isAfter(dzis) && it.data.isBefore(dzis.plusDays(7)) }
     if (nadchodzace.isEmpty()) println("Brak przypomnień na najbliższy tydzień.")
-    else {
-        println("Nadchodzące wydarzenia:")
-        nadchodzace.forEach { println("${it.data}: ${it.opis}") }
-    }
+    else nadchodzace.forEach { println("${it.data}: ${it.opis}") }
 }
 
-// Staty
 fun statystyki() {
-    println("📊 STATYSTYKI:")
+    println("STATYSTYKI:")
     println("Liczba zadań: ${zadania.size}, wykonane: ${zadania.count { it.wykonane }}")
     println("Liczba ocen: ${oceny.size}")
     if (oceny.isNotEmpty()) println("Średnia ocen: %.2f".format(oceny.map { it.ocena }.average()))
 }
 
-// Zapisy i odczyty
 fun zapiszDaneDoPliku() {
-    val file = File("asystent_dane.txt")
+    val file = File(nazwaPliku)
     file.printWriter().use { out ->
         out.println("[ZADANIA]")
-        zadania.forEach { out.println("${it.opis};${it.wykonane}") }
+        zadania.forEach { out.println("${escape(it.opis)};${it.wykonane}") }
         out.println("[OCENY]")
-        oceny.forEach { out.println("${it.przedmiot};${it.ocena}") }
+        oceny.forEach { out.println("${escape(it.przedmiot)};${it.ocena}") }
         out.println("[WYDARZENIA]")
-        wydarzenia.forEach { out.println("${it.data};${it.opis}") }
+        wydarzenia.forEach { out.println("${it.data};${escape(it.opis)}") }
         out.println("[PLAN]")
-        plan.forEach { out.println("${it.dzien};${it.przedmiot};${it.godzina}") }
+        plan.forEach { out.println("${escape(it.dzien)};${escape(it.przedmiot)};${escape(it.godzina)}") }
     }
-    println(" Dane zapisane do pliku!")
+    println("Dane zapisane do pliku: $nazwaPliku")
 }
 
 fun wczytajDaneZPliku() {
-    val file = File("asystent_dane.txt")
-    if (!file.exists()) return
-
+    val file = File(nazwaPliku)
+    if (!file.exists()) {
+        println("Brak pliku z danymi.")
+        return
+    }
+    zadania.clear(); oceny.clear(); wydarzenia.clear(); plan.clear()
     var sekcja = ""
-    file.forEachLine { line ->
-        when {
-            line.startsWith("[") -> sekcja = line
-            sekcja == "[ZADANIA]" -> {
+    file.forEachLine { rawLine ->
+        val line = rawLine.trim()
+        if (line.isEmpty()) return@forEachLine
+        if (line.startsWith("[")) {
+            sekcja = line
+            return@forEachLine
+        }
+        when (sekcja) {
+            "[ZADANIA]" -> {
                 val dane = line.split(";")
-                if (dane.size >= 2) zadania.add(Zadanie(dane[0], dane[1].toBoolean()))
+                if (dane.size >= 2) zadania.add(Zadanie(unescape(dane[0]), dane[1].toBooleanStrictOrNull() ?: false))
             }
-            sekcja == "[OCENY]" -> {
+            "[OCENY]" -> {
                 val dane = line.split(";")
-                if (dane.size >= 2) oceny.add(Ocena(dane[0], dane[1].toDouble()))
+                if (dane.size >= 2) dane[1].replace(',', '.').toDoubleOrNull()?.let {
+                    oceny.add(Ocena(unescape(dane[0]), it))
+                }
             }
-            sekcja == "[WYDARZENIA]" -> {
+            "[WYDARZENIA]" -> {
                 val dane = line.split(";")
-                if (dane.size >= 2) wydarzenia.add(Wydarzenie(LocalDate.parse(dane[0]), dane[1]))
+                if (dane.size >= 2) try {
+                    wydarzenia.add(Wydarzenie(LocalDate.parse(dane[0]), unescape(dane.subList(1, dane.size).joinToString(";"))))
+                } catch (_: Exception) {}
             }
-            sekcja == "[PLAN]" -> {
+            "[PLAN]" -> {
                 val dane = line.split(";")
-                if (dane.size >= 3) plan.add(Lekcja(dane[0], dane[1], dane[2]))
+                if (dane.size >= 3) plan.add(Lekcja(unescape(dane[0]), unescape(dane[1]), unescape(dane[2])))
             }
         }
     }
-    println(" Dane wczytane z pliku.")
+    println("Dane wczytane z pliku: $nazwaPliku")
+}
+
+fun escape(s: String): String = s.replace("\\", "\\\\").replace(";", "\\;")
+fun unescape(s: String): String = s.replace("\\;", ";").replace("\\\\", "\\")
+fun String?.toBooleanStrictOrNull(): Boolean? {
+    if (this == null) return null
+    return when (this.lowercase()) {
+        "true", "tak", "1", "t" -> true
+        "false", "nie", "0", "f" -> false
+        else -> null
+    }
 }
