@@ -14,7 +14,7 @@ val oceny = mutableListOf<Ocena>()
 val wydarzenia = mutableListOf<Wydarzenie>()
 val plan = mutableListOf<Lekcja>()
 var nazwaPliku = "asystent_dane.txt"
-
+// basic main
 fun main() {
     println("Witaj w Szkolnym Asystencie!")
     print("Podaj swoje imię: ")
@@ -78,7 +78,7 @@ fun main() {
         }
     }
 }
-
+// funkcja odpowiadajaca za plan lekcji
 fun menuPlanLekcji() {
     println("PLAN LEKCJI:")
     println("1. Dodaj lekcję")
@@ -111,7 +111,7 @@ fun menuPlanLekcji() {
         else -> println("Nieprawidłowa opcja.")
     }
 }
-
+// menu zadan z downem
 fun menuZadania() {
     println("ZADANIA DOMOWE:")
     println("1. Dodaj zadanie")
@@ -143,7 +143,7 @@ fun menuZadania() {
         else -> println("Nieprawidłowa opcja.")
     }
 }
-
+// jakies przyjebane ocenki
 fun menuOceny() {
     println("OCENY:")
     println("1. Dodaj ocenę")
@@ -163,7 +163,7 @@ fun menuOceny() {
         else -> println("Nieprawidłowa opcja.")
     }
 }
-
+// eventy
 fun menuWydarzenia() {
     println("KALENDARZ WYDARZEŃ:")
     println("1. Dodaj wydarzenie")
@@ -188,21 +188,21 @@ fun menuWydarzenia() {
         else -> println("Nieprawidłowa opcja.")
     }
 }
-
+// remindery
 fun przypomnienia() {
     val dzis = LocalDate.now()
     val nadchodzace = wydarzenia.filter { it.data.isAfter(dzis) && it.data.isBefore(dzis.plusDays(7)) }
     if (nadchodzace.isEmpty()) println("Brak przypomnień na najbliższy tydzień.")
     else nadchodzace.forEach { println("${it.data}: ${it.opis}") }
 }
-
+//Staty
 fun statystyki() {
     println("STATYSTYKI:")
     println("Liczba zadań: ${zadania.size}, wykonane: ${zadania.count { it.wykonane }}")
     println("Liczba ocen: ${oceny.size}")
     if (oceny.isNotEmpty()) println("Średnia ocen: %.2f".format(oceny.map { it.ocena }.average()))
 }
-
+// System zapisow danych
 fun zapiszDaneDoPliku() {
     val file = File(nazwaPliku)
     file.printWriter().use { out ->
@@ -217,7 +217,7 @@ fun zapiszDaneDoPliku() {
     }
     println("Dane zapisane do pliku: $nazwaPliku")
 }
-
+// Fun wczytujaca dane
 fun wczytajDaneZPliku() {
     val file = File(nazwaPliku)
     if (!file.exists()) {
@@ -258,10 +258,10 @@ fun wczytajDaneZPliku() {
     }
     println("Dane wczytane z pliku: $nazwaPliku")
 }
-
+// szyfrowanie i deszyfrowanie znakow specjalnych
 fun escape(s: String): String = s.replace("\\", "\\\\").replace(";", "\\;")
 fun unescape(s: String): String = s.replace("\\;", ";").replace("\\\\", "\\")
-
+// czyszczenie konsoli po kazdej operacji
 fun clearConsole() {
     if (System.getProperty("os.name").contains("win", ignoreCase = true)) {
         try {
