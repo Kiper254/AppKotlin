@@ -36,7 +36,7 @@ fun main() {
             6. Statystyki
             7. Zapisz dane
             8. Wyjście
-            ==========================
+            =========================
         """.trimIndent()
         )
 
@@ -263,13 +263,11 @@ fun escape(s: String): String = s.replace("\\", "\\\\").replace(";", "\\;")
 fun unescape(s: String): String = s.replace("\\;", ";").replace("\\\\", "\\")
 // czyszczenie konsoli po kazdej operacji
 fun clearConsole() {
-    if (System.getProperty("os.name").contains("win", ignoreCase = true)) {
-        try {
-            Thread.sleep(2000)
-            Runtime.getRuntime().exec("cmd /c cls")
-        } catch (e: Exception) {
-            println("Nie udało się wyczyścić konsoli.")
-        }
+    try {
+        val processBuilder = ProcessBuilder("cmd", "/c", "cls")
+        processBuilder.inheritIO().start().waitFor()
+    } catch (e: Exception) {
+        e.printStackTrace()
+        println("Wystąpił wyjątek: ${e.message}")
     }
 }
-
